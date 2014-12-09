@@ -21,4 +21,5 @@ module CSVReaders
     include(joinpath("interface", "vector_dict.jl"))
     include(joinpath("interface", "vector_nullable.jl"))
     include(joinpath("interface", "vector_any.jl"))
+    include(joinpath("interface", "vector_T.jl"))
 end

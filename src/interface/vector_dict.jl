@@ -1,64 +1,63 @@
 function allocate(
     ::Type{Vector{Dict}},
-    rows::Int,
-    cols::Int,
-    reader::CSVReader
+    nrows::Int,
+    ncols::Int,
+    reader::CSVReader,
 )
-    output = Array(Dict, rows)
-    sizehint(output, cols)
-    for row in 1:rows
+    output = Array(Dict, nrows)
+    sizehint(output, ncols)
+    for i in 1:nrows
         d = Dict()
-        sizehint(d, cols)
-        output[row] = d
+        sizehint(d, ncols)
+        output[i] = d
     end
     return output
 end
 
-function available_rows(output::Vector{Dict}, reader::CSVReader)
-    return length(output)
-end
+available_rows(output::Vector{Dict}, reader::CSVReader) = length(output)
 
-function add_rows!(output::Vector{Dict}, rows::Int, cols::Int)
-    rows_old = length(output)
-    resize!(output, rows)
-    for row in (rows_old + 1):rows
-        output[row] = Dict()
+function add_rows!(output::Vector{Dict}, nrows::Int, ncols::Int)
+    nrows_old = length(output)
+    resize!(output, nrows)
+    for i in (nrows_old + 1):nrows
+        output[i] = Dict()
     end
     return
 end
 
+# TODO: Patch up types here
 function fix_type!(
     output::Vector{Dict},
-    row::Int,
-    col::Int,
+    i::Int,
+    j::Int,
     code::Int,
-    reader::CSVReader
+    reader::CSVReader,
 )
     return
 end
 
 function store_null!(
     output::Vector{Dict},
-    row::Int,
-    col::Int,
+    i::Int,
+    j::Int,
     reader::CSVReader,
 )
-    output[row][reader.column_names[col]] = Nullable{Int}()
+    output[i][reader.column_names[j]] = Nullable{None}()
     return
 end
 
 function store_value!(
     output::Vector{Dict},
-    row::Int,
-    col::Int,
+    i::Int,
+    j::Int,
     reader::CSVReader,
     value::Any,
 )
-    output[row][reader.column_names[col]] = Nullable(value)
+    output[i][reader.column_names[j]] = Nullable(value)
     return
 end
 
-function finalize(output::Vector{Dict}, rows, cols)
-    resize!(output, rows)
+function finalize(output::Vector{Dict}, nrows::Int, ncols::Int)
+    resize!(output, nrows)
     return output
 end

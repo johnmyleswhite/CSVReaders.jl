@@ -17,7 +17,6 @@ expected code to the inner `get_value!` call.
   do not appear in the output.
 """ ->
 function readfield(io::IO, reader::CSVReader, expected_type::Int)
-    # TODO: Stop using expected_type here?
     nbytes = 0
 
     while reader.col == reader.skip_col

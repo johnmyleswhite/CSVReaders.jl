@@ -22,8 +22,8 @@ The package has several design goals:
 
 # For Users: Reading in Data
 
-In the demo below, you can see how one might read the contents of a CSV file
-into either a Dict-of-Vectors or a Vector-of-Dicts:
+In the demo below, we show how to read the contents of a CSV file into a
+Dict-of-Vectors and a Vector-of-Dicts:
 
 ```julia
 using CSVReaders
@@ -33,7 +33,7 @@ sizehint = filesize(path)
 
 reader = CSVReaders.CSVReader()
 io = open(path, "r")
-output = readall(Dict, io, reader, sizehint)
+output = readall(Dict{Vector}, io, reader, sizehint)
 close(io)
 
 reader = CSVReaders.CSVReader()
@@ -42,24 +42,67 @@ output = readall(Vector{Dict}, io, reader, sizehint)
 close(io)
 ```
 
+In the demo below, we show how to read the contents of a CSV file into a
+`Vector{Any}`. To get a matrix, you will want to call both `reshape` and
+`transpose`:
+
+```julia
+using CSVReaders
+
+path = Pkg.dir("CSVReaders", "test", "data", "scaling", "movies.csv")
+sizehint = filesize(path)
+
+reader = CSVReaders.CSVReader()
+io = open(path, "r")
+output = readall(Vector{Any}, io, reader, sizehint)
+close(io)
+
+ncols = length(reader.column_names)
+nrows = fld(length(output), ncols)
+transpose(reshape(output, ncols, nrows))
+```
+
+In the demo below, we show how to read the contents of a CSV file into a
+`Vector{Float64}` or a `Vector{Nullable{Float64}}`. Which output structure is
+appropriate depends on the possibility of null values being found in the
+input CSV file:
+
+```julia
+using CSVReaders
+
+path = Pkg.dir("CSVReaders", "test", "data", "numeric", "float.csv")
+sizehint = filesize(path)
+
+reader = CSVReaders.CSVReader()
+io = open(path, "r")
+output = readall(Vector{Float64}, io, reader, sizehint)
+close(io)
+
+reader = CSVReaders.CSVReader()
+io = open(path, "r")
+output = readall(Vector{Nullable{Float64}}, io, reader, sizehint)
+close(io)
+```
+
 # For Developers: Parser Interface
 
 To support reading data from CSV files into a new data structure, you need
 to implement seven functions:
 
-**(1) `allocate(::Type{T}, n::Int, p::Int, reader::CSVReader)`**
+**(1) `allocate(::Type{T}, nrows::Int, ncols::Int, reader::CSVReader)`**
 
 Allocate an initial version of your data structure (or some intermediate)
-that provides space for representing `n` rows and `p` columns.
+that provides space for representing `nrows` rows and `ncols` columns.
 
 **(2) `available_rows(output::T, reader::CSVReader)`**
 
 Compute the number of rows that can be stored inside of the currently allocated
 copy of the data structure. Used to determine if more rows need to be added.
 
-**(3) `add_rows!(output::T, newN::Int, p::Int)`**
+**(3) `add_rows!(output::T, nrows::Int, ncols::Int)`**
 
-Resize the data structure so that there is space to store `newN` rows and `p` columns.
+Resize the data structure so that there is space to store `nrows` rows and
+`ncols` columns.
 
 **(4) `fix_type!(output::T, i::Int, j::Int, code::Int, reader::CSVReader)`**
 
@@ -79,7 +122,7 @@ null values.
 
 Store a non-null value in the output data structure at row `i` and column `j`.
 
-**(7) `finalize(output::T, rows::Int, cols::Int)`**
+**(7) `finalize(output::T, nrows::Int, ncols::Int)`**
 
 Finalize the output data structure before returning it to the end-user. Often
 this step simply involves de-allocating space for rows that were not present

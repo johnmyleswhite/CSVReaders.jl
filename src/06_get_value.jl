@@ -31,8 +31,6 @@ field is true, you should be prepared to handle a null value. Otherwise, use
 * `Void`
 """ ->
 function get_value!(reader::CSVReader, expected_type::Int)
-    # TODO: Try recursion on !success rather than fallthrough as a possible
-    # performance hack
     bytes = reader.main
 
     parsed_type = expected_type
