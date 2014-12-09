@@ -5,10 +5,9 @@ function allocate(
     reader::CSVReader,
 )
     output = Array(Dict, nrows)
-    sizehint(output, ncols)
     for i in 1:nrows
         d = Dict()
-        sizehint(d, ncols)
+        sizehint!(d, ncols)
         output[i] = d
     end
     return output

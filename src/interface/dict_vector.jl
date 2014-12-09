@@ -5,7 +5,7 @@ function allocate(
     reader::CSVReader,
 )
     output = Dict()
-    sizehint(output, ncols)
+    sizehint!(output, ncols)
     for j in 1:ncols
         T = code2type(reader.column_types[j])
         colname = reader.column_names[j]
