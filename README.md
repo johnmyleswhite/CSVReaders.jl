@@ -28,7 +28,7 @@ Dict-of-Vectors and a Vector-of-Dicts:
 ```julia
 using CSVReaders
 
-path = Pkg.dir("CSVReaders", "test", "data", "scaling", "movies.csv")
+path = Pkg.dir("CSVReaders", "test", "data", "02_movies.csv")
 sizehint = filesize(path)
 
 reader = CSVReaders.CSVReader()
@@ -49,7 +49,7 @@ In the demo below, we show how to read the contents of a CSV file into a
 ```julia
 using CSVReaders
 
-path = Pkg.dir("CSVReaders", "test", "data", "scaling", "movies.csv")
+path = Pkg.dir("CSVReaders", "test", "data", "02_movies.csv")
 sizehint = filesize(path)
 
 reader = CSVReaders.CSVReader()
@@ -70,7 +70,7 @@ input CSV file:
 ```julia
 using CSVReaders
 
-path = Pkg.dir("CSVReaders", "test", "data", "numeric", "float.csv")
+path = Pkg.dir("CSVReaders", "test", "data", "01_floats.csv")
 sizehint = filesize(path)
 
 reader = CSVReaders.CSVReader()

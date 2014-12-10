@@ -15,7 +15,6 @@ function allocate(
     return output
 end
 
-# TODO: Clean this up
 function available_rows(output::Dict, reader::CSVReader)
     for col in values(output)
         return length(col)
@@ -33,34 +32,32 @@ function fix_type!(output::Dict, i::Int, j::Int, code::Int, reader::CSVReader)
     colname = reader.column_names[j]
     oldcol = output[colname]
     nrows = length(oldcol)
-    if code == Codes.FLOAT
+    if code == Codes.INT
+        newcol = Array(Nullable{Int}, nrows)
+        for idx in 1:(i - 1)
+            if isnull(oldcol[idx])
+                newcol[idx] = Nullable{Int}()
+            else
+                newcol[idx] = Nullable{Int}(int(oldcol[idx]))
+            end
+        end
+    elseif code == Codes.FLOAT
         newcol = Array(Nullable{Float64}, nrows)
         for idx in 1:(i - 1)
             if isnull(oldcol[idx])
                 newcol[idx] = Nullable{Float64}()
             else
-                newcol[idx] = Nullable(float64(oldcol[idx]))
+                newcol[idx] = Nullable{Float64}(float64(oldcol[idx]))
             end
         end
-    elseif code == Codes.BOOL
-        newcol = Array(Nullable{Bool}, nrows)
-        for idx in 1:(i - 1)
-            if isnull(oldcolumn[idx])
-                newcol[idx] = Nullable{Bool}()
-            else
-                newcol[idx] = Nullable(bool(oldcol[idx]))
-            end
-        end
-        output[col] = newcolumn
     elseif code == Codes.STRING
         newcol = Array(Nullable{UTF8String}, nrows)
         for idx in 1:(row - 1)
-            if isnull(oldcolumn[idx])
+            if isnull(oldcol[idx])
                 newcol[idx] = Nullable{UTF8String}()
             else
                 newcol[idx] = Nullable{UTF8String}(string(oldcol[idx]))
             end
-
         end
     end
     output[colname] = newcol

@@ -17,15 +17,19 @@ Insert the name `UnnamedColumn` for any column that had an empty name.
 """ ->
 function readheader(io::IO, reader::CSVReader)
     column_names = Array(UTF8String, 0)
+    reader.contained_comment = true
+    while isempty(column_names) && reader.contained_comment
+        reader.eor = false
+        while !reader.eor
+            readfield(io, reader, Codes.STRING)
 
-    reader.eor = false
-    while !reader.eor
-        readfield(io, reader, Codes.STRING)
-
-        if reader.isnull
-            push!(column_names, "UnnamedColumn")
-        else
-            push!(column_names, reader.string)
+            if reader.isnull
+                push!(column_names, "UnnamedColumn")
+            else
+                if !(isempty(reader.main) && reader.contained_comment)
+                    push!(column_names, reader.string)
+                end
+            end
         end
     end
 

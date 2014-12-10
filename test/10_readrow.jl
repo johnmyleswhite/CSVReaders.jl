@@ -2,7 +2,7 @@ module TestReadRow
     using Base.Test
     using CSVReaders
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
 
@@ -22,7 +22,7 @@ module TestReadRow
 
     while !isempty(row.isnull)
         bytes = CSVReaders.readrow(io, reader, row)
-        if !isempty(reader)
+        if !isempty(reader.main)
             i += 1
         end
     end
@@ -32,7 +32,7 @@ module TestReadRow
     close(io)
 
     # Now w/ skip_cols
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
     reader.skip_cols = Int[i for i in 2:25]
@@ -55,7 +55,7 @@ module TestReadRow
 
     while !isempty(row.isnull)
         bytes = CSVReaders.readrow(io, reader, row)
-        if !isempty(reader)
+        if !isempty(reader.main)
             i += 1
         end
     end

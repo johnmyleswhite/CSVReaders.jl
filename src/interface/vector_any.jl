@@ -23,11 +23,45 @@ function fix_type!(
     code::Int,
     reader::CSVReader
 )
+    ncols = length(reader.column_types)
+    nrows = fld(length(output), ncols)
+    if code == Codes.INT
+        for row_idx in 1:(i - 1)
+            idx = (row_idx - 1) * ncols + j
+            if isnull(output[idx])
+                output[idx] = Nullable{Int}()
+            else
+                output[idx] = Nullable{Int}(int(get(output[idx])))
+            end
+        end
+    elseif code == Codes.FLOAT
+        for row_idx in 1:(i - 1)
+            idx = (row_idx - 1) * ncols + j
+            if isnull(output[idx])
+                output[idx] = Nullable{Float64}()
+            else
+                output[idx] = Nullable{Float64}(float64(get(output[idx])))
+            end
+        end
+    elseif code == Codes.STRING
+        for row_idx in 1:(i - 1)
+            idx = (row_idx - 1) * ncols + j
+            if isnull(output[idx])
+                output[idx] = Nullable{UTF8String}()
+            else
+                output[idx] = Nullable{UTF8String}(
+                    convert(UTF8String, string(get(output[idx])))
+                )
+            end
+        end
+    end
     return
 end
 
 function store_null!(output::Vector{Any}, i::Int, j::Int, reader::CSVReader)
-    output[(i - 1) * length(reader.column_types) + j] = Nullable{None}()
+    ncols = length(reader.column_types)
+    T = code2type(reader.column_types[j])
+    output[(i - 1) * ncols + j] = Nullable{T}()
     return
 end
 
@@ -38,7 +72,16 @@ function store_value!(
     reader::CSVReader,
     value::Any,
 )
-    output[(i - 1) * length(reader.column_types) + j] = Nullable(value)
+    ncols = length(reader.column_types)
+    code = reader.column_types[j]
+    T = code2type(code)
+    if code == Codes.String
+        output[(i - 1) * ncols + j] = Nullable{T}(
+            convert(UTF8String, string(value))
+        )
+    else
+        output[(i - 1) * ncols + j] = Nullable{T}(convert(T, value))
+    end
     return
 end
 

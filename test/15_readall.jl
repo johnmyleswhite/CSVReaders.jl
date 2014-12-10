@@ -2,23 +2,21 @@ module TestReadall
     using Base.Test
     using CSVReaders
 
-    path = joinpath("test", "data", "scaling", "movies.csv")
+    path = joinpath("test", "data", "02_movies.csv")
     sizehint = filesize(path)
 
-    for itr in 1:2
-        reader = CSVReaders.CSVReader()
-        io = open(path, "r")
-        @time output = readall(Dict{Vector}, io, reader, sizehint)
-        close(io)
+    reader = CSVReaders.CSVReader()
+    io = open(path, "r")
+    output1 = readall(Dict{Vector}, io, reader, sizehint)
+    close(io)
 
-        reader = CSVReaders.CSVReader()
-        io = open(path, "r")
-        @time output = readall(Vector{Dict}, io, reader, sizehint)
-        close(io)
+    reader = CSVReaders.CSVReader()
+    io = open(path, "r")
+    output2 = readall(Vector{Dict}, io, reader, sizehint)
+    close(io)
 
-        reader = CSVReaders.CSVReader()
-        io = open(path, "r")
-        @time output = readall(Vector{Any}, io, reader, sizehint)
-        close(io)
-    end
+    reader = CSVReaders.CSVReader()
+    io = open(path, "r")
+    output3 = readall(Vector{Any}, io, reader, sizehint)
+    close(io)
 end

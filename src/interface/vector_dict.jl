@@ -4,49 +4,65 @@ function allocate(
     ncols::Int,
     reader::CSVReader,
 )
-    output = Array(Dict, nrows)
+    output = Array(Dict{UTF8String, Any}, nrows)
     for i in 1:nrows
-        d = Dict()
+        d = Dict{UTF8String, Any}()
         sizehint!(d, ncols)
         output[i] = d
     end
     return output
 end
 
-available_rows(output::Vector{Dict}, reader::CSVReader) = length(output)
+function available_rows(
+    output::Vector{Dict{UTF8String, Any}},
+    reader::CSVReader,
+)
+    return length(output)
+end
 
-function add_rows!(output::Vector{Dict}, nrows::Int, ncols::Int)
+function add_rows!(
+    output::Vector{Dict{UTF8String, Any}},
+    nrows::Int,
+    ncols::Int,
+)
     nrows_old = length(output)
     resize!(output, nrows)
     for i in (nrows_old + 1):nrows
-        output[i] = Dict()
+        output[i] = Dict{UTF8String, Any}()
     end
     return
 end
 
-# TODO: Patch up types here
 function fix_type!(
-    output::Vector{Dict},
+    output::Vector{Dict{UTF8String, Any}},
     i::Int,
     j::Int,
     code::Int,
     reader::CSVReader,
 )
+    colname = reader.column_names[j]
+    for idx in 1:(i - 1)
+        output[idx][colname] = convert(
+            Nullable{code2type(code)},
+            output[idx][colname]
+        )
+    end
     return
 end
 
 function store_null!(
-    output::Vector{Dict},
+    output::Vector{Dict{UTF8String, Any}},
     i::Int,
     j::Int,
     reader::CSVReader,
 )
-    output[i][reader.column_names[j]] = Nullable{None}()
+    T = code2type(reader.column_types[j])
+    output[i][reader.column_names[j]] = Nullable{T}()
     return
 end
 
 function store_value!(
-    output::Vector{Dict},
+    output::Vector{Dict{UTF8String, Any}},
     i::Int,
     j::Int,
     reader::CSVReader,
@@ -56,7 +72,11 @@ function store_value!(
     return
 end
 
-function finalize(output::Vector{Dict}, nrows::Int, ncols::Int)
+function finalize(
+    output::Vector{Dict{UTF8String, Any}},
+    nrows::Int,
+    ncols::Int,
+)
     resize!(output, nrows)
     return output
 end

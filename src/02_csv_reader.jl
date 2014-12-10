@@ -40,13 +40,16 @@ type CSVReader
 
     # == get_value config ==
     nulls::Vector{Vector{Uint8}}
+    default_nulls::Bool
     trues::Vector{Vector{Uint8}}
+    default_trues::Bool
     falses::Vector{Vector{Uint8}}
+    default_falses::Bool
 
     # == get_value state ==
+    bool::Bool
     int::Int
     float::Float64
-    bool::Bool
     string::UTF8String
     success::Bool
     isnull::Bool
@@ -69,11 +72,11 @@ end
 
 # @doc """
 # # Description
-
+#
 # Construct a CSVReader object with reasonable defaults.
-
+#
 # # Arguments
-
+#
 # * `separator::String`: The sequence of bytes defining the field separator,
 #    input as a string. Defaults to `","`.
 # * `newline::String`: The sequence of bytes defining the row separator, input
@@ -106,11 +109,11 @@ end
 #    Defaults to `Int[]`.
 # * `skip_cols::Vector{Int}`: Should certain columns from the IO source be
 #    ignored? Defaults to `Int[]`.
-
+#
 # # Returns
-
+#
 # * `reader::CSVReader`: A CSVReader object
-
+#
 # """ ->
 function CSVReader(;
     separator::String = ",",
@@ -122,8 +125,8 @@ function CSVReader(;
     allow_comments::Bool = true,
     allow_padding::Bool = true,
     nulls::Vector = ["NA", "NULL"],
-    trues::Vector = ["true", "TRUE"],
-    falses::Vector = ["false", "FALSE"],
+    trues::Vector = ["t", "T", "true", "TRUE"],
+    falses::Vector = ["f", "F", "false", "FALSE"],
     column_types::Vector{DataType} = DataType[],
     column_names::Vector{UTF8String} = UTF8String[],
     header::Bool = true,
@@ -135,27 +138,28 @@ function CSVReader(;
     # TODO: Support the following
     # decimal::Char – Assume that the decimal place in numbers is written
     #   using the decimal character. Defaults to '.'.
-    # makefactors::Bool – Convert string columns into PooledDataVector‘s for
-    #   use as factors. Defaults to false.
     # encoding::Int
     eoc_bytes = convert(Vector{Uint8}, separator)
     eoc_prefix = eoc_bytes[1]
-    eor_bytes::Vector{Uint8} = convert(Vector{Uint8}, newline)
+    eor_bytes = convert(Vector{Uint8}, newline)
     eor_prefix = eor_bytes[1]
-    quote_byte::Uint8 = convert(Vector{Uint8}, quotemark)[1]
-    comment_byte::Uint8 = convert(Vector{Uint8}, commentmark)[1]
+    quote_byte = convert(Vector{Uint8}, quotemark)[1]
+    comment_byte = convert(Vector{Uint8}, commentmark)[1]
     null_seqs = convert(Vector{Vector{Uint8}}, nulls)
+    default_nulls = nulls == ["NA", "NULL"]
     true_seqs = convert(Vector{Vector{Uint8}}, trues)
+    default_trues = trues == ["true", "TRUE"]
     false_seqs = convert(Vector{Vector{Uint8}}, falses)
+    default_falses = falses == ["false", "FALSE"]
     main = Uint8[]
     scratch = Uint8[]
     eor = false
     eoc = false
     contained_comment = false
     contained_quote = false
+    boolval = false
     intval = 0
     floatval = 0.0
-    boolval = false
     stringval = ""
     successval = false
     isnullval = false
@@ -188,11 +192,14 @@ function CSVReader(;
         contained_comment,
         contained_quote,
         null_seqs,
+        default_nulls,
         true_seqs,
+        default_trues,
         false_seqs,
+        default_falses,
+        boolval,
         intval,
         floatval,
-        boolval,
         stringval,
         successval,
         isnullval,
@@ -210,29 +217,7 @@ function CSVReader(;
     )
 end
 
-@doc """
-# Description
-
-Remove any padding bytes from the righthand side of the main byte buffer.
-
-# Arguments
-
-* `reader::CSVReader`:  A CSVReader object
-
-# Returns
-
-* Void
-""" ->
-function rstrip!(reader::CSVReader) # -> Void
-    bytes = reader.main
-    i = length(bytes)
-    while i > 0 && bytes[i] == convert(Uint8, ' ')
-        i -= 1
-        pop!(bytes)
-    end
-    return
-end
-
+# TODO: Remove this function
 @doc """
 # Description
 
@@ -252,40 +237,3 @@ function transfer!(reader::CSVReader) # -> Void
     end
     return
 end
-
-@doc """
-# Description
-
-Prepare a CSVReader object for reading a new field by resetting fields that
-are left dirty by the previous read and will not be set correctly during the
-next read.
-
-# Arguments
-
-* `reader::CSVReader`: A CSVReader object
-
-# Returns
-
-* Void
-""" ->
-function reset!(reader::CSVReader) # -> Void
-    resize!(reader.main, 0)
-    reader.contained_comment = false
-    reader.contained_quote = false
-    return
-end
-
-@doc """
-# Description
-
-Is the buffer of bytes of the last field read empty?
-
-# Arguments
-
-* `reader::CSVReader`: A CSVReader object
-
-# Returns
-
-* `isempty::Bool`: Is the buffer empty?
-""" ->
-Base.isempty(reader::CSVReader) = length(reader.main) == 0

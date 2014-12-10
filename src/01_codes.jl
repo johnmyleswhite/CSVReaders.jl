@@ -1,7 +1,13 @@
+# Parseable types are organized in a linear hierarchy from easiest to
+# reject to hardest to reject:
+# (1) Bool
+# (2) Int64
+# (3) Float64
+# (4) UTF8String
 module Codes
-    const INT = 1
-    const FLOAT = 2
-    const BOOL = 3
+    const BOOL = 1
+    const INT = 2
+    const FLOAT = 3
     const STRING = 4
 end
 
@@ -13,9 +19,9 @@ Convert a code number to its equivalent Julia type
 # Arguments
 
 * `code::Int`: The numeric code for a type. Must be one of:
+    * `Codes.BOOL`
     * `Codes.INT`
     * `Codes.FLOAT`
-    * `Codes.BOOL`
     * `Codes.STRING`
 
 # Returns
@@ -23,12 +29,12 @@ Convert a code number to its equivalent Julia type
 * `type::DataType`: The Julia type corresponding to the input code number.
 """ ->
 function code2type(code::Int)
-    if code == Codes.INT
+    if code == Codes.BOOL
+        return Bool
+    elseif code == Codes.INT
         return Int64
     elseif code == Codes.FLOAT
         return Float64
-    elseif code == Codes.BOOL
-        return Bool
     elseif code == Codes.STRING
         return UTF8String
     else
@@ -53,7 +59,8 @@ Convert a Julia type to its equivalent code number
 
 * `code::Int`: The numeric code for the input type.
 """ ->
+type2code(::Type{Bool}) = Codes.BOOL
 type2code(::Type{Int64}) = Codes.INT
 type2code(::Type{Float64}) = Codes.FLOAT
-type2code(::Type{Bool}) = Codes.BOOL
 type2code(::Type{UTF8String}) = Codes.STRING
+type2code{T}(::Type{T}) = throw(DomainError())

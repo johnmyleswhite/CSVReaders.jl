@@ -4,7 +4,7 @@ module TestReadNRows
 
     # Read a longer input into a Vector{Dict}
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
     reader.column_names = CSVReaders.readheader(io, reader)
@@ -12,9 +12,9 @@ module TestReadNRows
     row = CSVReaders.Relation(falses(0), Any[])
     bytes = CSVReaders.readrow(io, reader, row)
 
-    output = Array(Dict, 10_000)
+    output = Array(Dict{UTF8String, Any}, 10_000)
     for i in 1:10_000
-        output[i] = Dict()
+        output[i] = Dict{UTF8String, Any}()
     end
 
     CSVReaders.store_row!(output, 1, reader, row)
@@ -27,7 +27,7 @@ module TestReadNRows
 
     # Read the same input into a Dict{Vector}
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
     reader.column_names = CSVReaders.readheader(io, reader)
@@ -35,7 +35,7 @@ module TestReadNRows
     row = CSVReaders.Relation(falses(0), Any[])
     bytes = CSVReaders.readrow(io, reader, row)
 
-    output = Dict()
+    output = Dict{UTF8String, Any}()
     for j in 1:length(reader.column_types)
         output[reader.column_names[j]] = Array(
             Nullable{CSVReaders.code2type(reader.column_types[j])},
@@ -52,7 +52,7 @@ module TestReadNRows
     close(io)
 
     # Vector{Nullable{Float64}}?
-    io = open(joinpath("test", "data", "numeric", "float.csv"), "r")
+    io = open(joinpath("test", "data", "01_floats.csv"), "r")
 
     reader = CSVReaders.CSVReader()
     reader.column_names = CSVReaders.readheader(io, reader)

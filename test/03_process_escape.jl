@@ -20,7 +20,7 @@ module TestProcessEscape
         result = convert(Uint8, result_char)
         CSVReaders.process_escape!(reader, input)
         @test reader.main == [result]
-        CSVReaders.reset!(reader)
+        empty!(reader.main)
     end
 
     @test_throws(

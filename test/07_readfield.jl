@@ -17,11 +17,17 @@ module TestReadField
 
     finished = false
     i = 0
+    coltypes = [
+        CSVReaders.Codes.INT,
+        CSVReaders.Codes.FLOAT,
+        CSVReaders.Codes.BOOL,
+        CSVReaders.Codes.STRING
+    ]
     while !finished
         i += 1
         for j in 1:4
-            nbytes = CSVReaders.readfield(io, reader, j)
-            if j == 1 && reader.eof && isempty(reader)
+            nbytes = CSVReaders.readfield(io, reader, coltypes[j])
+            if j == 1 && reader.eof && isempty(reader.main)
                 finished = true
                 break
             end

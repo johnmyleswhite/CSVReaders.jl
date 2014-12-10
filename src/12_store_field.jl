@@ -1,22 +1,28 @@
+# Number this so that it occurs after store_row
 function store_field!(
     output::Any,
-    row::Int,
-    col::Int,
+    i::Int,
+    j::Int,
     reader::CSVReader,
 )
-    ensure_type(reader, output, row, col)
+    if !reader.success
+        code = reader.current_type
+        reader.column_types[j] = code
+        fix_type!(output, i, j, code, reader)
+    end
 
     if reader.isnull
-        store_null!(output, row, col, reader)
+        store_null!(output, i, j, reader)
     else
-        if reader.current_type == Codes.INT
-            store_value!(output, row, col, reader, reader.int)
+        if reader.current_type == Codes.BOOL
+            store_value!(output, i, j, reader, reader.bool)
+        elseif reader.current_type == Codes.INT
+            # TOOD: Why is this slow? Or just a hot path?
+            store_value!(output, i, j, reader, reader.int)
         elseif reader.current_type == Codes.FLOAT
-            store_value!(output, row, col, reader, reader.float)
-        elseif reader.current_type == Codes.BOOL
-            store_value!(output, row, col, reader, reader.bool)
+            store_value!(output, i, j, reader, reader.float)
         elseif reader.current_type == Codes.STRING
-            store_value!(output, row, col, reader, reader.string)
+            store_value!(output, i, j, reader, reader.string)
         end
     end
     return

@@ -7,19 +7,19 @@ This function works entirely through side effects. In particular, it will:
 * Set the `success` code
 * Set the `isnull` code
 * Set the `current_type` code
-* (Possibly) set a value in the `int`, `float`, `bool` or `string` fields
+* (Possibly) set a value in the `bool`, `int`, `float`, or `string` fields
 
 A user should check, in order:
 * `success(reader)`
 * `isnull(reader)`
 * `current_type(reader)`:
-* `int(reader)` | `float(reader)` | `bool(reader)` | `string(reader)`
+* `bool(reader)` | `int(reader)` | `float(reader)` | `string(reader)`
 
 If the success field is false, you should assume that your output container
 may need to have its type changed to handle the set value. If the isnull
 field is true, you should be prepared to handle a null value. Otherwise, use
-`current_type` to determine whether you should read from `int`, `float`,
-`bool`, or `string`.
+`current_type` to determine whether you should read from `bool`, `int`,
+`float`, or `string`.
 
 # Arguments
 
@@ -35,7 +35,7 @@ function get_value!(reader::CSVReader, expected_type::Int)
 
     parsed_type = expected_type
 
-    if parsenull(bytes, reader.nulls)
+    if parsenull(bytes, reader.nulls, reader.default_nulls)
         reader.success = true
         reader.isnull = true
         reader.current_type = expected_type
@@ -45,13 +45,34 @@ function get_value!(reader::CSVReader, expected_type::Int)
     if length(bytes) == 0
         if reader.contained_quote
             parsed_type = Codes.STRING
+            # Return immediately
         else
+            # TODO: Remove this restriction
             if expected_type != Codes.STRING
                 reader.success = true
                 reader.isnull = true
                 reader.current_type = expected_type
                 return
             end
+        end
+    end
+
+    if parsed_type == Codes.BOOL
+        boolval, succeeded = parsebool(
+            bytes,
+            reader.trues,
+            reader.falses,
+            reader.default_trues,
+            reader.default_falses,
+        )
+        if !succeeded
+            parsed_type = Codes.INT
+        else
+            reader.success = parsed_type == expected_type
+            reader.isnull = false
+            reader.current_type = Codes.BOOL
+            reader.bool = boolval
+            return
         end
     end
 
@@ -71,25 +92,12 @@ function get_value!(reader::CSVReader, expected_type::Int)
     if parsed_type == Codes.FLOAT
         floatval, succeeded = parsefloat(bytes)
         if !succeeded
-            parsed_type = Codes.BOOL
+            parsed_type = Codes.STRING
         else
             reader.success = parsed_type == expected_type
             reader.isnull = false
             reader.current_type = Codes.FLOAT
             reader.float = floatval
-            return
-        end
-    end
-
-    if parsed_type == Codes.BOOL
-        boolval, succeeded = parsebool(bytes, reader.trues, reader.falses)
-        if !succeeded
-            parsed_type = Codes.STRING
-        else
-            reader.success = parsed_type == expected_type
-            reader.isnull = false
-            reader.current_type = Codes.BOOL
-            reader.bool = boolval
             return
         end
     end

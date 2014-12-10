@@ -80,7 +80,7 @@ module TestGetBytes
 
     @test (i, j) == (6, 1)
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
 

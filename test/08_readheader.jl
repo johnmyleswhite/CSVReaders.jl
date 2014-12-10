@@ -2,7 +2,7 @@ module TestReadHeader
     using Base.Test
     using CSVReaders
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
 
@@ -39,7 +39,7 @@ module TestReadHeader
     close(io)
 
     # Now with a skipped column
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader(skip_cols = [1])
 

@@ -5,6 +5,11 @@ module TestParsers
     function test_parsenull(seed::Integer, iterations::Integer)
         srand(seed)
 
+        defaults = Vector{Uint8}[
+            convert(Vector{Uint8}, "NA"),
+            convert(Vector{Uint8}, "NULL"),
+        ]
+
         sentinels = Vector{Uint8}[
             convert(Vector{Uint8}, "NA"),
             convert(Vector{Uint8}, "N/A"),
@@ -12,8 +17,13 @@ module TestParsers
         ]
 
         # Generate permutations of sentinels and test accuracy
+        for bytes in defaults
+            @test CSVReaders.parsenull(bytes, defaults, true) === true
+            @test CSVReaders.parsenull(bytes, defaults, false) === true
+        end
+
         for bytes in sentinels
-            @test CSVReaders.parsenull(bytes, sentinels) === true
+            @test CSVReaders.parsenull(bytes, sentinels, false) === true
         end
 
         # Test that random strings do not match
@@ -21,10 +31,15 @@ module TestParsers
             for iteration in 1:iterations
                 s = randstring(len)
                 bytes = convert(Vector{Uint8}, s)
-                if !in(bytes, sentinels)
-                    @test CSVReaders.parsenull(bytes, sentinels) === false
+                if !in(bytes, defaults)
+                    @test CSVReaders.parsenull(bytes, defaults, true) === false
                 else
-                    @test CSVReaders.parsenull(bytes, sentinels) === true
+                    @test CSVReaders.parsenull(bytes, defaults, true) === true
+                end
+                if !in(bytes, sentinels)
+                    @test CSVReaders.parsenull(bytes, sentinels, false) === false
+                else
+                    @test CSVReaders.parsenull(bytes, sentinels, false) === true
                 end
             end
         end
@@ -98,12 +113,12 @@ module TestParsers
 
         # Generate permutations of true sentinels and test accuracy
         for bytes in trues
-            @test CSVReaders.parsebool(bytes, trues, falses) === (true, true)
+            @test CSVReaders.parsebool(bytes, trues, falses, true, true) === (true, true)
         end
 
         # Generate permutations of false sentinels and test accuracy
         for bytes in falses
-            @test CSVReaders.parsebool(bytes, trues, falses) === (false, true)
+            @test CSVReaders.parsebool(bytes, trues, falses, true, true) === (false, true)
         end
 
         # Test that random strings do not match
@@ -111,15 +126,15 @@ module TestParsers
             for iteration in 1:iterations
                 bytes = convert(Vector{Uint8}, randstring(len))
                 if in(bytes, trues)
-                    @test CSVReaders.parsebool(bytes, trues, falses) === (
+                    @test CSVReaders.parsebool(bytes, trues, falses, true, true) === (
                         true, true
                     )
                 elseif in(bytes, falses)
-                    @test CSVReaders.parsebool(bytes, trues, falses) === (
+                    @test CSVReaders.parsebool(bytes, trues, falses, true, true) === (
                         false, true
                     )
                 else
-                    @test CSVReaders.parsebool(bytes, trues, falses) === (
+                    @test CSVReaders.parsebool(bytes, trues, falses, true, true) === (
                         false, false
                     )
                 end

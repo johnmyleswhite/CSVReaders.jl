@@ -21,7 +21,7 @@ module TestParseField
         i += 1
         for j in 1:4
             nbytes = CSVReaders.get_bytes!(io, reader)
-            if j == 1 && reader.eof && isempty(reader)
+            if j == 1 && reader.eof && isempty(reader.main)
                 finished = true
                 break
             else

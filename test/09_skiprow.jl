@@ -2,7 +2,7 @@ module TestSkipRow
     using Base.Test
     using CSVReaders
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
     CSVReaders.skiprow(io, reader)
@@ -39,7 +39,7 @@ module TestSkipRow
 
     close(io)
 
-    io = open(joinpath("test", "data", "scaling", "movies.csv"), "r")
+    io = open(joinpath("test", "data", "02_movies.csv"), "r")
 
     reader = CSVReaders.CSVReader()
 

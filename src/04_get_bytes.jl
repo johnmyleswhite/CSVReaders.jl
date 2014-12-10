@@ -38,7 +38,9 @@ side effects, including:
 that influence parsing, but are not stored in the final buffer.
 """ ->
 function get_bytes!(io::IO, reader::CSVReader)
-    reset!(reader)
+    resize!(reader.main, 0)
+    reader.contained_comment = false
+    reader.contained_quote = false
 
     nbytes = 0
 
@@ -56,6 +58,7 @@ function get_bytes!(io::IO, reader::CSVReader)
             break
         end
 
+        # TODO: Can we buffer IO?
         byte = read(io, Uint8)
         nbytes += 1
 
@@ -87,6 +90,7 @@ function get_bytes!(io::IO, reader::CSVReader)
             elseif reader.allow_quotes && byte == reader.quote_byte
                 state = States.QUOTED
                 reader.contained_quote = true
+                # TODO: Remove this allow_escapes
             elseif reader.allow_escapes && byte == '\\'
                 state = States.UNQUOTED_ASCII_ESCAPE
             elseif byte == reader.eoc_prefix
@@ -104,6 +108,7 @@ function get_bytes!(io::IO, reader::CSVReader)
         elseif state == States.QUOTED
             if reader.allow_quotes && byte == reader.quote_byte
                 state = States.ESCAPED_QUOTE_BYTE
+                # TODO: Remove this allow_escapes
             elseif reader.allow_escapes && byte == '\\'
                 state = States.QUOTED_ASCII_ESCAPE
             else
@@ -144,7 +149,11 @@ function get_bytes!(io::IO, reader::CSVReader)
     end
 
     if reader.allow_padding
-        rstrip!(reader)
+        i = length(reader.main)
+        while i > 0 && reader.main[i] == convert(Uint8, ' ')
+            i -= 1
+            pop!(reader.main)
+        end
     end
 
     return nbytes

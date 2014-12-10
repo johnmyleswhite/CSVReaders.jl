@@ -1,21 +1,21 @@
 function store_row!(
     output::Any,
-    row::Int,
+    i::Int,
     reader::CSVReader,
-    rowdata::Relation,
+    row::Relation,
 )
-    cols = length(rowdata.isnull)
+    ncols = length(row.isnull)
 
-    if row > available_rows(output, reader)
-        add_rows!(output, ceil(Integer, 1.5 * row), cols)
+    if i > available_rows(output, reader)
+        add_rows!(output, ceil(Integer, 1.5 * i), ncols)
     end
 
-    for col in 1:cols
-        ensure_type(reader, output, row, col)
-        if rowdata.isnull[col]
-            store_null!(output, row, col, reader)
+    for j in 1:ncols
+        if row.isnull[j]
+            store_null!(output, i, j, reader)
         else
-            store_value!(output, row, col, reader, rowdata.values[col])
+            # TODO: Why is this slow?
+            store_value!(output, i, j, reader, row.values[j])
         end
     end
     return

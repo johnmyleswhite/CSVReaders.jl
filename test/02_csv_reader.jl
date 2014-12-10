@@ -43,18 +43,7 @@ module TestCSVReader
         ' ',
     ]
 
-    CSVReaders.rstrip!(reader)
-
-    @test reader.main == Uint8[
-        'F',
-        'o',
-        'o',
-        'b',
-        'a',
-        'r',
-    ]
-
-    CSVReaders.reset!(reader)
+    empty!(reader.main)
     @test isempty(reader.main) === true
 
     push!(reader.main, 0x00)
@@ -80,10 +69,8 @@ module TestCSVReader
     @test reader.main == Uint8[0x00]
     @test reader.scratch == Uint8[]
 
-    CSVReaders.reset!(reader)
+    empty!(reader.main)
     @test reader.main == Uint8[]
-    @test reader.contained_comment === false
-    @test reader.contained_quote === false
 
     @test reader.nulls == Vector{Uint8}[
         convert(Vector{Uint8}, "NA"),
@@ -91,11 +78,15 @@ module TestCSVReader
     ]
 
     @test reader.trues == Vector{Uint8}[
+        convert(Vector{Uint8}, "t"),
+        convert(Vector{Uint8}, "T"),
         convert(Vector{Uint8}, "true"),
         convert(Vector{Uint8}, "TRUE"),
     ]
 
     @test reader.falses == Vector{Uint8}[
+        convert(Vector{Uint8}, "f"),
+        convert(Vector{Uint8}, "F"),
         convert(Vector{Uint8}, "false"),
         convert(Vector{Uint8}, "FALSE"),
     ]
